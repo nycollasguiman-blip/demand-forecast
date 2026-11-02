@@ -10,7 +10,7 @@ def load_train():
     
 def complete_dates(df):
     """
-    Garante uma linha por (data, loja, família). Datas ausentes (ex.: 25/12) viram venda 0.
+    Guarantees one line per each possible combination of date, store and family. Missing dates (e.g., 12/25) result in 0 sales.
     """
     dates = pd.date_range(df["date"].min(), df["date"].max(), freq="D")
     idx = pd.MultiIndex.from_product(
@@ -24,16 +24,16 @@ def complete_dates(df):
     
 def load_oil(dates):
     """
-    Preço do petróleo com os dias sem cotação preenchidos pelo último valor.
+    Oil price, with days lacking a quote filled in using the most recent value.
     """
     oil = pd.read_csv(f"{RAW}/oil.csv", parse_dates=["date"]).set_index("date")
-    oil = oil.reindex(dates).ffill().bfill()
+    oil = oil.reindex(dates).ffill().bfill() # Its danger use bfill in temporal series
     
     return oil.rename(columns={"dcoilwtico": "oil"}).rename_axis("date").reset_index()
     
 def load_national_holidays():
     h = pd.read_csv(f"{RAW}/holidays_events.csv", parse_dates=["date"])
-    h = h[(h["locale"] == "National") & (~h["transferred"]) & (h["type"] != "Work Day")]
+    h = h[(h["locale"] == "National") & (~h["transferred"]) & (h["type"] != "Work Day")] # Not transferred, possible improvement
     
     return pd.DataFrame({"date": h["date"].unique(), "is_holiday": 1})
     
